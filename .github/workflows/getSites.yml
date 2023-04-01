@@ -9,6 +9,9 @@ on:
     # UTC 16:00 = CST 0:00
     - cron: '0 16 * 4 *'
 
+permissions:
+  contents: write
+
 jobs:
   crawl:
     runs-on: ubuntu-latest
@@ -40,8 +43,6 @@ jobs:
             ```
           files: |
             april-bang-dream-cn-${{ env.CRAWL_END_DATE }}.zip
-          permissions:
-            contents: write
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v1
