@@ -22,7 +22,7 @@ jobs:
         run: |
           chmod -v +x getSites.sh
           ./getSites.sh
-          echo "CRAWL_END_DATE=$(date '+%F-%H.%M.%S')" >> $GITHUB_ENV
+          echo "CRAWL_END_DATE=$(date '+%g%m%d-%H%M%S')" >> $GITHUB_ENV
 
       - name: Zip site to archive
         run: |
