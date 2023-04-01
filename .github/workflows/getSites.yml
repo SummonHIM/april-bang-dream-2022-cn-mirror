@@ -1,0 +1,61 @@
+# This is a basic workflow to help you get started with Actions
+
+name: auto_Crawl_Site
+
+# Controls when the workflow will run
+on:
+  workflow_dispatch:
+  schedule:
+    # UTC 16:00 = CST 0:00
+    - cron: '0 16 * 4 *'
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup environment
+        run: sudo apt-get install wget zip -y
+
+      - name: Crawling site
+        run: |
+          chmod -v +x getSites.sh
+          ./getSites.sh
+          echo "CRAWL_END_DATE=$(date '+%F-%H.%M.%S')" >> $GITHUB_ENV
+
+      - name: Zip site to archive
+        run: |
+          zip -r -9 april-bang-dream-cn-${{ env.CRAWL_END_DATE }}.zip game.bilibili.com/bangdream/april/
+          echo "ZIP_SHA256SUM=$(sha256sum april-bang-dream-cn-${{ env.CRAWL_END_DATE }}.zip)" >> $GITHUB_ENV
+
+      - name: Upload archive to releases
+        uses: softprops/action-gh-release@v1
+        with:
+          name: april-bang-dream-cn-${{ env.CRAWL_END_DATE }}
+          tag_name: ${{ env.CRAWL_END_DATE }}
+          body: |
+            ```
+            ${{ env.ZIP_SHA256SUM }}
+            ```
+          files: |
+            april-bang-dream-cn-${{ env.CRAWL_END_DATE }}.zip
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: game.bilibili.com/bangdream/april/
+
+  deploy:
+    needs: crawl
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
